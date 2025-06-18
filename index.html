@@ -1,86 +1,62 @@
+<script type="module">
+  // Firebase v9 Modular Syntax
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-<!DOCTYPE html>
-<html>
-<head>
-  <title>MEGANITE - Online Work Platform</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-  <style>
-    body { font-family: Arial; background: linear-gradient(to right, #001f3f, #FFD700); color: white; padding: 20px; }
-    .package { border: 1px solid #fff; margin: 10px; padding: 10px; border-radius: 10px; }
-    .hidden { display: none; }
-  </style>
-</head>
-<body>
-  <h1>MEGANITE</h1>
-  <div id="auth-section">
-    <input type="email" id="email" placeholder="Email"><br>
-    <input type="password" id="password" placeholder="Password"><br>
-    <button onclick="login()">Login</button>
-    <button onclick="signup()">Sign Up</button>
-  </div>
-  <div id="packages" class="hidden">
-    <h2>Available Packages</h2>
-    <div id="package-list"></div>
-  </div>
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCA4dxfOiSKodT-lQ1EV_8bC7psStgluIU",
-      authDomain: "meganite-aa244.firebaseapp.com",
-      projectId: "meganite-aa244",
-      storageBucket: "meganite-aa244.appspot.com",
-      messagingSenderId: "327064488928",
-      appId: "1:327064488928:web:005b163d4c1fbdf993b985",
-      measurementId: "G-Z5SYFM29C0"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCA4dxfOiSKodT-lQ1EV_8bC7psStgluIU",
+    authDomain: "meganite-aa244.firebaseapp.com",
+    projectId: "meganite-aa244",
+    storageBucket: "meganite-aa244.appspot.com",
+    messagingSenderId: "327064488928",
+    appId: "1:327064488928:web:005b163d4c1fbdf993b985",
+    measurementId: "G-Z5SYFM29C0"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    function login() {
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-      auth.signInWithEmailAndPassword(email, pass)
-        .then(() => {
-          document.getElementById('auth-section').classList.add('hidden');
-          document.getElementById('packages').classList.remove('hidden');
-          loadTasks('silver');
-        }).catch((err) => {
-          alert("Login error: " + err.message);
-        });
+  window.login = async function () {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('packages').classList.remove('hidden');
+      loadTasks('silver');
+    } catch (error) {
+      alert(error.message);
     }
+  }
 
-    function signup() {
-      const email = document.getElementById('email').value;
-      const pass = document.getElementById('password').value;
-      auth.createUserWithEmailAndPassword(email, pass)
-        .then(() => login())
-        .catch((err) => {
-          alert("Signup error: " + err.message);
-        });
+  window.signup = async function () {
+    const email = document.getElementById('email').value;
+    const pass = document.getElementById('password').value;
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+      login();
+    } catch (error) {
+      alert(error.message);
     }
+  }
 
-    function loadTasks(packageName) {
-      db.collection("packages").doc(packageName).get().then((doc) => {
-        const data = doc.data();
-        const container = document.getElementById("package-list");
-        container.innerHTML = "";
-        if (data && data.currentTasks) {
-          data.currentTasks.forEach(task => {
-            const div = document.createElement("div");
-            div.className = "package";
-            div.innerHTML = `<strong>${task.name}</strong><br><a href="${task.apkUrl}" download>Download</a>`;
-            container.appendChild(div);
-          });
-        } else {
-          container.innerHTML = "<p>No tasks found.</p>";
-        }
-      }).catch((err) => {
-        alert("Failed to load tasks: " + err.message);
+  async function loadTasks(packageName) {
+    const docRef = doc(db, "packages", packageName);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const container = document.getElementById("package-list");
+      container.innerHTML = "";
+      data.currentTasks.forEach(task => {
+        const div = document.createElement("div");
+        div.className = "package";
+        div.innerHTML = `<strong>${task.name}</strong><br><a href="${task.apkUrl}" download>Download</a>`;
+        container.appendChild(div);
       });
+    } else {
+      console.log("No such package found!");
     }
-  </script>
-</body>
-</html>
+  }
+</script>
