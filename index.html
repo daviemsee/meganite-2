@@ -1,62 +1,119 @@
-<script type="module">
-  // Firebase v9 Modular Syntax
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MEGANITE - Online Work Platform</title>
+  <script type="module">
+    // Import Firebase v9 SDK (modular)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCA4dxfOiSKodT-lQ1EV_8bC7psStgluIU",
-    authDomain: "meganite-aa244.firebaseapp.com",
-    projectId: "meganite-aa244",
-    storageBucket: "meganite-aa244.appspot.com",
-    messagingSenderId: "327064488928",
-    appId: "1:327064488928:web:005b163d4c1fbdf993b985",
-    measurementId: "G-Z5SYFM29C0"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyCA4dxfOiSKodT-lQ1EV_8bC7psStgluIU",
+      authDomain: "meganite-aa244.firebaseapp.com",
+      projectId: "meganite-aa244",
+      storageBucket: "meganite-aa244.appspot.com",
+      messagingSenderId: "327064488928",
+      appId: "1:327064488928:web:005b163d4c1fbdf993b985",
+      measurementId: "G-Z5SYFM29C0"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  window.login = async function () {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      document.getElementById('auth-section').classList.add('hidden');
-      document.getElementById('packages').classList.remove('hidden');
-      loadTasks('silver');
-    } catch (error) {
-      alert(error.message);
+    window.login = async function () {
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('packages').style.display = 'block';
+        loadTasks('silver');
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
     }
-  }
 
-  window.signup = async function () {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('password').value;
-    try {
-      await createUserWithEmailAndPassword(auth, email, pass);
-      login();
-    } catch (error) {
-      alert(error.message);
+    window.signup = async function () {
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      try {
+        await createUserWithEmailAndPassword(auth, email, pass);
+        login();
+      } catch (error) {
+        alert("Signup failed: " + error.message);
+      }
     }
-  }
 
-  async function loadTasks(packageName) {
-    const docRef = doc(db, "packages", packageName);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      const container = document.getElementById("package-list");
-      container.innerHTML = "";
-      data.currentTasks.forEach(task => {
-        const div = document.createElement("div");
-        div.className = "package";
-        div.innerHTML = `<strong>${task.name}</strong><br><a href="${task.apkUrl}" download>Download</a>`;
-        container.appendChild(div);
-      });
-    } else {
-      console.log("No such package found!");
+    async function loadTasks(packageName) {
+      const docRef = doc(db, "packages", packageName);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const container = document.getElementById("package-list");
+        container.innerHTML = "";
+        data.currentTasks.forEach(task => {
+          const div = document.createElement("div");
+          div.className = "package";
+          div.innerHTML = `<strong>${task.name}</strong><br><a href="${task.apkUrl}" download>Download</a>`;
+          container.appendChild(div);
+        });
+      } else {
+        alert("No tasks available for this package today.");
+      }
     }
-  }
-</script>
+  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #001f3f, #FFD700);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #FFD700;
+      border: none;
+      cursor: pointer;
+      margin: 5px;
+      border-radius: 5px;
+    }
+    .package {
+      border: 1px solid white;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 10px;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 MEGANITE</h1>
+    <div id="auth-section">
+      <h3>Login or Sign Up</h3>
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <button onclick="signup()">Sign Up</button>
+    </div>
+
+    <div id="packages" style="display:none;">
+      <h2>🎁 Your Daily Tasks</h2>
+      <div id="package-list"></div>
+    </div>
+  </div>
+</body>
+</html>
